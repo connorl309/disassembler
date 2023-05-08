@@ -135,12 +135,13 @@ private:
     void parse_elf_header();
     void parse_program_table();
     void parse_section_table();
-
+    uint64_t findSectionByName(const char* name); 
 public:
     ELF_File(FILE* input);
     ~ELF_File();
     void basicInfo();
     void dumpSectionEntries();
+    void printSectionData(const char* name);
 };
 
 #endif /* End ELF definition header */
