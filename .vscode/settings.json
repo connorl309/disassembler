@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.cpp": "cpp",
+        "*.asm": "asm-intel-x86-generic",
+        "file_structs.h": "c",
+        "decode_helpers.h": "c"
+    }
+}
