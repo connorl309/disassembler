@@ -1,8 +1,8 @@
 c_src = $(shell find . -name "*.cpp")
 
-sampler:
+disassembler.out:
 	g++ -g $(c_src) -o $@
 
 clean:
-	rm -fR sampler
+	rm -fR disassembler.out
 	rm -fR *.txt
