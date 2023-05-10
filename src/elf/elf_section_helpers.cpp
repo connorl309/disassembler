@@ -41,7 +41,7 @@ uint64_t ELF_File::findSectionByName(const char* name) {
     return -1;
 }
 
-void ELF_File::printSectionData(const char* name) {
+returnSection ELF_File::getSectionData(const char* name) {
     uint64_t sectionNumber = findSectionByName(name);
     if (sectionNumber == (uint64_t)-1) {
         printf("Specified section with name %s does not exist!\n", name);
@@ -52,15 +52,17 @@ void ELF_File::printSectionData(const char* name) {
     Section_Header_Entry32* sectionAs32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
     Section_Header_Entry64* sectionAs64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
     
-    uint64_t sectionSize = (is32) ? sectionAs32[sectionNumber].sectionFileSize : sectionAs64[sectionNumber].sectionFileSize;    
-    uint8_t* sectionData = new uint8_t[sectionSize];
+    uint64_t sectionSize = (is32) ? sectionAs32[sectionNumber].sectionFileSize : sectionAs64[sectionNumber].sectionFileSize;
     uint64_t offsetIntoImage = (is32) ? sectionAs32[sectionNumber].sectionFileOffset : sectionAs64[sectionNumber].sectionFileOffset;
+
+    returnSection toReturn = {offsetIntoImage, sectionSize};
+    return toReturn;
+    /*
     fseek(selectedFile, offsetIntoImage, SEEK_SET);
     fread(sectionData, sizeof(uint8_t), sectionSize, selectedFile);
 
     for (int i = 0; i < sectionSize; i++) {
         printf("%.2X ", sectionData[i]);
     }
-
-    delete[] sectionData;
+    */
 }

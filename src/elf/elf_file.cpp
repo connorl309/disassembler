@@ -16,6 +16,12 @@ ELF_File::ELF_File(FILE* input) {
     parse_elf_header();
     parse_program_table();
     parse_section_table();
+    
+    // Load up all the .text stuff
+    returnSection code = getSectionData(".text");
+    text_section_bytes = new uint8_t[code.sectionSize];
+    fseek(selectedFile, code.image_offset, SEEK_SET);
+    fread(text_section_bytes, sizeof(uint8_t), code.sectionSize, selectedFile);
 }
 ELF_File::~ELF_File() {
     if (is32) {
@@ -27,6 +33,7 @@ ELF_File::~ELF_File() {
         delete[] static_cast<Program_Header_Entry64*>(ProgramHeaderTable);
         delete[] static_cast<Section_Header_Entry64*>(SectionHeaderTable);
     }
+    delete[] text_section_bytes;
 }
 void ELF_File::basicInfo() {
     ELF_Header32* Aself32 = static_cast<ELF_Header32*>(ElfHeader);

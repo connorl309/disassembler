@@ -2,9 +2,8 @@
 
 int main(int argc, char** argv) {
     FILE* attempt = fopen(argv[1], "rt");
-    ELF_File hello(attempt);
-    hello.basicInfo();
-    //hello.dumpSectionEntries();
-    hello.printSectionData(".text");
+    ELF_File tryme(attempt);
+    
     fclose(attempt);
+    return 0;
 }

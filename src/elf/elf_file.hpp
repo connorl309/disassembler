@@ -117,6 +117,11 @@ struct Section_Header_Entry64 {
     uint64_t entrySize;
 };
 
+typedef struct {
+    uint64_t image_offset;
+    uint64_t sectionSize;
+} returnSection;
+
 // AN ELF FILE CLASS
 class ELF_File {
 
@@ -131,6 +136,7 @@ private:
     uint64_t sectionTableOff;
     bool is32;
     int file_bits;
+    uint8_t* text_section_bytes;
     
     void parse_elf_header();
     void parse_program_table();
@@ -141,7 +147,7 @@ public:
     ~ELF_File();
     void basicInfo();
     void dumpSectionEntries();
-    void printSectionData(const char* name);
+    returnSection getSectionData(const char* name);
 };
 
 #endif /* End ELF definition header */
