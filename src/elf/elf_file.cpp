@@ -22,6 +22,11 @@ ELF_File::ELF_File(FILE* input) {
     text_section_bytes = new uint8_t[code.sectionSize];
     fseek(selectedFile, code.image_offset, SEEK_SET);
     fread(text_section_bytes, sizeof(uint8_t), code.sectionSize, selectedFile);
+    codeByteSize = code.sectionSize;
+    codeFileOffset = code.image_offset;
+}
+uint8_t* ELF_File::expose_code() {
+    return text_section_bytes;
 }
 ELF_File::~ELF_File() {
     if (is32) {
@@ -46,8 +51,8 @@ void ELF_File::basicInfo() {
     printf("* ABI: \t\t\t%s\n", abinames[Aself32->elf_abi]);
     if (Aself32->elf_type < 10) printf("* File type: \t\t%s\n", typenames[Aself32->elf_type]);
     printf("* Machine ISA: \t\t");
-    if (Aself32->elf_machine_isa == amd64) printf("AMD x86-64\n");
-    else if (Aself32->elf_machine_isa == x86) printf("Intel x86\n");
+    if (Aself32->elf_machine_isa == 0x3E) printf("AMD x86-64\n");
+    else if (Aself32->elf_machine_isa == 3) printf("Intel x86\n");
     else printf("%X, not named in this program\n", Aself32->elf_machine_isa);
     (is32) ? printf("* Entry point: \t\t0x%X\n", Aself32->entry_point) : printf("* Entry point: \t\t0x%lX\n", Aself64->entry_point);
     printf("\nProgram and Section header information:\n");

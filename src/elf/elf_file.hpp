@@ -13,10 +13,6 @@
 #define elf32 (1)
 #define elf64 (2)
 
-// machine isas
-#define x86 (3)
-#define amd64 (0x3E)
-
 // An ELF header
 struct ELF_Header32 {
     uint8_t elf_magic[4]; // should be 7F 45 4C 46
@@ -148,6 +144,9 @@ public:
     void basicInfo();
     void dumpSectionEntries();
     returnSection getSectionData(const char* name);
+    uint8_t* expose_code();
+    uint64_t codeByteSize;
+    uint64_t codeFileOffset;
 };
 
 #endif /* End ELF definition header */
