@@ -18,14 +18,15 @@ ELF_File::ELF_File(FILE* input) {
     parse_section_table();
     // now guaranteed that header, ptable and stable are generated
 
-    // Do stuff for symbol table
-    uint64_t symTableIndex = findSectionByName(".symtab", false);
+    // Populate symbol table array
+    // To access a symbol name:
+    // fseek() to the ".strtab" section, with an added offset of symbol_table_entry.st_name
+    // Read. It's null terminated so you're good
+    returnSection symtab = getSectionData(".symtab");
     Section_Header_Entry32* as32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
     Section_Header_Entry64* as64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
-    uint64_t symtable_size = (is32) ? as32[symTableIndex].sectionFileSize : as64[symTableIndex].sectionFileSize;
-    uint64_t num_symtable_entries = symtable_size / ( (is32) ? sizeof(Symbol_Table_Entry32) : sizeof(Symbol_Table_Entry64) );
-    uint64_t fileOffset = (is32) ? as32[symTableIndex].sectionFileOffset : as64[symTableIndex].sectionFileOffset;
-    fseek(selectedFile, fileOffset, SEEK_SET);
+    uint64_t num_symtable_entries = symtab.sectionSize / ( (is32) ? sizeof(Symbol_Table_Entry32) : sizeof(Symbol_Table_Entry64) );
+    fseek(selectedFile, symtab.image_offset, SEEK_SET);
     if (is32) {
         SymbolTable = new Symbol_Table_Entry32[num_symtable_entries];
         fread(SymbolTable, sizeof(Symbol_Table_Entry32), num_symtable_entries, selectedFile);
@@ -33,7 +34,6 @@ ELF_File::ELF_File(FILE* input) {
         SymbolTable = new Symbol_Table_Entry64[num_symtable_entries];
         fread(SymbolTable, sizeof(Symbol_Table_Entry64), num_symtable_entries, selectedFile);
     }
-    // symbol table array now holds each symtab entry
 }
 ELF_File::~ELF_File() {
     if (is32) {

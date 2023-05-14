@@ -2,6 +2,8 @@
 #include "elf/elf_file.hpp"
 #include "./incs/capstone.h"
 #include <string.h>
+#include <memory.h>
+#include <sys/mman.h>
 
 // https://www.capstone-engine.org/lang_c.html
 #define COMMANDCAP 5
@@ -57,7 +59,10 @@ int main(int argc, char** argv) {
                     printf("capstone died L\n");
                     return -1;
                 }
-                // dewit!
+                // do the disassembly
+
+// TODO: see if we can convert "static" addresses into their symbol equivalents
+// from symtable.
                 count = cs_disasm(handle, data, sectionInfo.sectionSize, sectionInfo.image_offset, 0, &instruction);
                 if (count > 0) {
                     printf("\nWarning: instruction mode printing on sections that (likely) do not contain instructions\nWILL result " \
@@ -79,6 +84,7 @@ int main(int argc, char** argv) {
                     return -1;
                 }
                 cs_close(&handle);
+                delete[] data;
             } else { // hex mode
                 // also display as characters
                 // some funny formatting stuff

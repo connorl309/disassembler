@@ -2,6 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <memory.h>
+#include <sys/mman.h>
 
 // Returns the section # that has the name of "name"
 uint64_t ELF_File::findSectionByName(const char* name, bool cliHelp) {
@@ -48,6 +50,8 @@ uint64_t ELF_File::findSectionByName(const char* name, bool cliHelp) {
     return -1;
 }
 
+// Gives a return struct containing file offset and section size
+// for a section of name "name"
 returnSection ELF_File::getSectionData(const char* name) {
     uint64_t sectionNumber = findSectionByName(name, false);
     if (sectionNumber == (uint64_t)-1) {
@@ -64,16 +68,9 @@ returnSection ELF_File::getSectionData(const char* name) {
 
     returnSection toReturn = {offsetIntoImage, sectionSize};
     return toReturn;
-    /*
-    fseek(selectedFile, offsetIntoImage, SEEK_SET);
-    fread(sectionData, sizeof(uint8_t), sectionSize, selectedFile);
-
-    for (int i = 0; i < sectionSize; i++) {
-        printf("%.2X ", sectionData[i]);
-    }
-    */
 }
 
+// Mostly internal
 returnSection ELF_File::getSectionDataIndex(uint64_t index) {
     ELF_Header32* elfAs32 = static_cast<ELF_Header32*>(ElfHeader);
     ELF_Header64* elfAs64 = static_cast<ELF_Header64*>(ElfHeader);
@@ -97,9 +94,10 @@ returnSection ELF_File::getSectionDataIndex(uint64_t index) {
     return toReturn;
 }
 
+// Returns a pointer to an array containing specified section data
+// Will need to revamp as allocating megabytes of stuff is. Not smart.
 uint8_t* ELF_File::sectionArray(returnSection abc) {
     uint8_t* toReturn = new uint8_t[abc.sectionSize];
-
     fseek(selectedFile, abc.image_offset, SEEK_SET);
     fread(toReturn, sizeof(uint8_t), abc.sectionSize, selectedFile);
     return toReturn;

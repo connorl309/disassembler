@@ -167,6 +167,7 @@ public:
     // return a pointer to an array containing section data, in bytes
     // MUST BE DELETED[] BY CALLER
     uint8_t* sectionArray(returnSection abc);
+    uint64_t fileAddress();
 };
 
 #endif /* End ELF definition header */
