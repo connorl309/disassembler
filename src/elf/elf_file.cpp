@@ -26,6 +26,9 @@ ELF_File::ELF_File(FILE* input) {
     Section_Header_Entry32* as32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
     Section_Header_Entry64* as64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
     uint64_t num_symtable_entries = symtab.sectionSize / ( (is32) ? sizeof(Symbol_Table_Entry32) : sizeof(Symbol_Table_Entry64) );
+    symbolTableEntries = num_symtable_entries;
+    symbolTableSection = symtab;
+    
     fseek(selectedFile, symtab.image_offset, SEEK_SET);
     if (is32) {
         SymbolTable = new Symbol_Table_Entry32[num_symtable_entries];

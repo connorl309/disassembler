@@ -1,9 +1,6 @@
 #include "elf_file.hpp"
 #include <string.h>
 #include <stdlib.h>
-#include <math.h>
-#include <memory.h>
-#include <sys/mman.h>
 
 // Returns the section # that has the name of "name"
 uint64_t ELF_File::findSectionByName(const char* name, bool cliHelp) {
@@ -102,3 +99,35 @@ uint8_t* ELF_File::sectionArray(returnSection abc) {
     fread(toReturn, sizeof(uint8_t), abc.sectionSize, selectedFile);
     return toReturn;
 }
+
+// Symbol table helper - return table entry data
+char* ELF_File::symbolTableGrab(uint64_t address) {
+    Symbol_Table_Entry32* sym32 = static_cast<Symbol_Table_Entry32*>(SymbolTable);
+    Symbol_Table_Entry64* sym64 = static_cast<Symbol_Table_Entry64*>(SymbolTable);
+
+    returnSection strtab = getSectionData(".strtab");
+    char* symname = new char[100];
+    memset(symname, '\0', 100);
+    
+    if (is32) {
+        for (int i = 0; i < symbolTableEntries; i++) {
+            //fseek(selectedFile, strtab.image_offset + sym32[i].st_name, SEEK_SET);
+            if (sym32[i].st_value == address) {
+                fseek(selectedFile, strtab.image_offset + sym32[i].st_name, SEEK_SET);
+                fread(symname, sizeof(char), 100, selectedFile);
+                break;
+            }
+        }
+    } else {
+        for (int i = 0; i < symbolTableEntries; i++) {
+            //fseek(selectedFile, strtab.image_offset + sym64[i].st_name, SEEK_SET);
+            if (sym64[i].st_value == address) {
+                fseek(selectedFile, strtab.image_offset + sym64[i].st_name, SEEK_SET);
+                fread(symname, sizeof(char), 100, selectedFile);
+                break;
+            }
+        }
+    }
+
+    return symname;
+}   

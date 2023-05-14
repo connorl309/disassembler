@@ -1,7 +1,10 @@
 c_src = $(shell find . -name "*.cpp")
 lib = capstone
-disassembler.out: $(c_src)
-	g++ -g $(c_src) -o $@ -L./incs/ -l$(lib)
+EXEC = disassembler.out
+debug: $(c_src)
+	g++ -g3 $(c_src) -o $(EXEC) -L./incs/ -l$(lib)
+release: $(c_src)
+	g++ -O2 $(c_src) -o $(EXEC) -L./incs/ -l$(lib)
 
 clean:
 	rm -fR disassembler.out

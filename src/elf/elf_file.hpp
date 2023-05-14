@@ -142,7 +142,7 @@ typedef struct {
 class ELF_File {
 
 private:
-    void* ElfHeader;
+    void* ElfHeader; // fread(jkwefahawejklfhwa)
     void* ProgramHeaderTable;
     void* SectionHeaderTable;
     void* SymbolTable;
@@ -151,6 +151,8 @@ private:
     uint64_t numberOfSectionHeaders;
     uint64_t numberOfProgramHeaders;
     uint64_t sectionTableOff;
+    uint64_t symbolTableEntries;
+    returnSection symbolTableSection;
     bool is32;
     
     void parse_elf_header();
@@ -167,7 +169,7 @@ public:
     // return a pointer to an array containing section data, in bytes
     // MUST BE DELETED[] BY CALLER
     uint8_t* sectionArray(returnSection abc);
-    uint64_t fileAddress();
+    char* symbolTableGrab(uint64_t address);
 };
 
 #endif /* End ELF definition header */
