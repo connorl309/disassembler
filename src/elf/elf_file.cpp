@@ -74,7 +74,7 @@ void ELF_File::dumpSectionEntries() {
     // and each section will be fixed size (hopefully...)
     Section_Header_Entry32* as32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
     Section_Header_Entry64* as64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
-    printf("\nSection headers\n");
+    printf("\nSections:\n");
     for (int i = 0; i < numberOfSectionHeaders; i++) {
         int a = 0;
         printf("\nSection name offset: \t%X\n", as32[i].sectionNameOffset);

@@ -131,22 +131,27 @@ private:
     uint64_t numberOfProgramHeaders;
     uint64_t sectionTableOff;
     bool is32;
+    bool namePopulated;
     int file_bits;
     uint8_t* text_section_bytes;
     
     void parse_elf_header();
     void parse_program_table();
-    void parse_section_table();
-    uint64_t findSectionByName(const char* name); 
+    void parse_section_table(); 
 public:
     ELF_File(FILE* input);
     ~ELF_File();
     void basicInfo();
     void dumpSectionEntries();
+    uint64_t findSectionByName(const char* name, bool cliHelp);
     returnSection getSectionData(const char* name);
+    returnSection getSectionDataIndex(uint64_t index);
     uint8_t* expose_code();
     uint64_t codeByteSize;
     uint64_t codeFileOffset;
+    // return a pointer to an array containing section data, in bytes
+    uint8_t* sectionArray(returnSection abc);
+
 };
 
 #endif /* End ELF definition header */
