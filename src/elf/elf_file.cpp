@@ -16,29 +16,37 @@ ELF_File::ELF_File(FILE* input) {
     parse_elf_header();
     parse_program_table();
     parse_section_table();
-    
-    // Load up all the .text stuff
-    returnSection code = getSectionData(".text");
-    text_section_bytes = new uint8_t[code.sectionSize];
-    fseek(selectedFile, code.image_offset, SEEK_SET);
-    fread(text_section_bytes, sizeof(uint8_t), code.sectionSize, selectedFile);
-    codeByteSize = code.sectionSize;
-    codeFileOffset = code.image_offset;
-}
-uint8_t* ELF_File::expose_code() {
-    return text_section_bytes;
+    // now guaranteed that header, ptable and stable are generated
+
+    // Do stuff for symbol table
+    uint64_t symTableIndex = findSectionByName(".symtab", false);
+    Section_Header_Entry32* as32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
+    Section_Header_Entry64* as64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
+    uint64_t symtable_size = (is32) ? as32[symTableIndex].sectionFileSize : as64[symTableIndex].sectionFileSize;
+    uint64_t num_symtable_entries = symtable_size / ( (is32) ? sizeof(Symbol_Table_Entry32) : sizeof(Symbol_Table_Entry64) );
+    uint64_t fileOffset = (is32) ? as32[symTableIndex].sectionFileOffset : as64[symTableIndex].sectionFileOffset;
+    fseek(selectedFile, fileOffset, SEEK_SET);
+    if (is32) {
+        SymbolTable = new Symbol_Table_Entry32[num_symtable_entries];
+        fread(SymbolTable, sizeof(Symbol_Table_Entry32), num_symtable_entries, selectedFile);
+    } else {
+        SymbolTable = new Symbol_Table_Entry64[num_symtable_entries];
+        fread(SymbolTable, sizeof(Symbol_Table_Entry64), num_symtable_entries, selectedFile);
+    }
+    // symbol table array now holds each symtab entry
 }
 ELF_File::~ELF_File() {
     if (is32) {
         delete static_cast<ELF_Header32*>(ElfHeader);
         delete[] static_cast<Program_Header_Entry32*>(ProgramHeaderTable);
         delete[] static_cast<Section_Header_Entry32*>(SectionHeaderTable);
+        delete[] static_cast<Symbol_Table_Entry32*>(SymbolTable);
     } else {
         delete static_cast<ELF_Header64*>(ElfHeader);
         delete[] static_cast<Program_Header_Entry64*>(ProgramHeaderTable);
         delete[] static_cast<Section_Header_Entry64*>(SectionHeaderTable);
+        delete[] static_cast<Symbol_Table_Entry64*>(SymbolTable);
     }
-    delete[] text_section_bytes;
 }
 void ELF_File::basicInfo() {
     ELF_Header32* Aself32 = static_cast<ELF_Header32*>(ElfHeader);

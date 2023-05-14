@@ -113,6 +113,26 @@ struct Section_Header_Entry64 {
     uint64_t entrySize;
 };
 
+// a symbol table entry
+struct Symbol_Table_Entry32 {
+    uint32_t st_name; // index into .strtab
+    uint32_t st_value;
+    uint32_t st_size;
+    uint8_t st_info;
+    uint8_t st_other;
+    // which section do we belong to
+    uint16_t st_shndx;
+};
+struct Symbol_Table_Entry64 {
+    uint32_t st_name;
+    uint8_t st_info;
+    uint8_t st_other;
+    uint16_t st_shndx; // index into .strtab
+    uint64_t st_value;
+    uint64_t st_size;
+};
+
+// helpers and stuff
 typedef struct {
     uint64_t image_offset;
     uint64_t sectionSize;
@@ -125,15 +145,13 @@ private:
     void* ElfHeader;
     void* ProgramHeaderTable;
     void* SectionHeaderTable;
+    void* SymbolTable;
 
     FILE* selectedFile;
     uint64_t numberOfSectionHeaders;
     uint64_t numberOfProgramHeaders;
     uint64_t sectionTableOff;
     bool is32;
-    bool namePopulated;
-    int file_bits;
-    uint8_t* text_section_bytes;
     
     void parse_elf_header();
     void parse_program_table();
@@ -146,12 +164,9 @@ public:
     uint64_t findSectionByName(const char* name, bool cliHelp);
     returnSection getSectionData(const char* name);
     returnSection getSectionDataIndex(uint64_t index);
-    uint8_t* expose_code();
-    uint64_t codeByteSize;
-    uint64_t codeFileOffset;
     // return a pointer to an array containing section data, in bytes
+    // MUST BE DELETED[] BY CALLER
     uint8_t* sectionArray(returnSection abc);
-
 };
 
 #endif /* End ELF definition header */

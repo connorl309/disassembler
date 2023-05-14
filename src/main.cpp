@@ -12,6 +12,8 @@ const char* commands[COMMANDCAP] = {
     "quit"
 };
 
+#define HEXPRINT_AMOUNT 18
+
 int main(int argc, char** argv) {
 
     // may explode. handle later
@@ -58,6 +60,8 @@ int main(int argc, char** argv) {
                 // dewit!
                 count = cs_disasm(handle, data, sectionInfo.sectionSize, sectionInfo.image_offset, 0, &instruction);
                 if (count > 0) {
+                    printf("\nWarning: instruction mode printing on sections that (likely) do not contain instructions\nWILL result " \
+                            "in incorrect outputs, such as not printing enough instructions, interpreting wrong instructions, etc.\n\n");
                     for (size_t i = 0; i < count; i++) {
                         printf("0x%"PRIx64":\t%s\t\t%s\n", instruction[i].address, instruction[i].mnemonic,
                                 instruction[i].op_str);
@@ -76,8 +80,35 @@ int main(int argc, char** argv) {
                 }
                 cs_close(&handle);
             } else { // hex mode
+                // also display as characters
+                // some funny formatting stuff
+                int j = 0;
+                printf("0x%lX:\t", sectionInfo.image_offset);
+                uint8_t charVersion[HEXPRINT_AMOUNT] = {0}; // 10 bc null term
                 for (int i = 0; i < sectionInfo.sectionSize; i++) {
+                    if (j == HEXPRINT_AMOUNT) {
+                        // print ascii equivalent
+                        printf("\t.");
+                        for (char c : charVersion) {
+                            printf("%c.", c);
+                        }
+                        printf("\n0x%lX:\t", sectionInfo.image_offset + i);
+                        j = 0;
+                    }
+                    charVersion[i % HEXPRINT_AMOUNT] = data[i];
                     printf("%02X ", data[i]);
+                    // if this is the last iteration then we want to print remaining and quit
+                    if (i == sectionInfo.sectionSize - 1) {
+                        for (int special = 1; special < HEXPRINT_AMOUNT - j; special++) {
+                            printf("00 ");
+                        }
+                        printf("\t.");
+                        for (char c : charVersion) {
+                            printf("%c.", c);
+                        }
+                        break;
+                    }
+                    j++;
                 }
                 printf("\n");
             }
