@@ -22,6 +22,12 @@ ELF_File::ELF_File(FILE* input) {
     // To access a symbol name:
     // fseek() to the ".strtab" section, with an added offset of symbol_table_entry.st_name
     // Read. It's null terminated so you're good
+    /**
+     * TODO:
+     * .symtab and .strtab MAY NOT EXIST
+     * In this case we have to use .dyntab and .dynstr entries.
+     * Need to check this !
+    */
     returnSection symtab = getSectionData(".symtab");
     Section_Header_Entry32* as32 = static_cast<Section_Header_Entry32*>(SectionHeaderTable);
     Section_Header_Entry64* as64 = static_cast<Section_Header_Entry64*>(SectionHeaderTable);
