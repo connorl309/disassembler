@@ -1,12 +1,7 @@
 # disassembler
-A little hobby disassembler.
-## Or, a worse version of Ghidra :) 
+A little hobby disassembler, leveraging the [Capstone disassembly engine](https://www.capstone-engine.org/lang_c.html).
 
-Written in C++ (but, using mostly C-esque style). 
-Plans:
+Features a custom binary parser, currently supporting ELF files, with planned support for the Windows PE format.
+Can dump section information, headers, raw data, etc.
 
-- ELF and PE executable format parsing
-- recognize and handle two ABIs (Sys-V and Windows x86/64)
-- (graphically) allow interfacing and display of program sections and code
-
-And whatever other things I decide to implement. Thanks :)
+Originally written in mostly C, but now rewriting in C++ (see branches).
