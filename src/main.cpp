@@ -1,5 +1,7 @@
 //#include "../includes/capstone.h"
-#include "elf/elf.hpp"
+#include "elf/elf32.hpp"
+#include "elf/elf64.hpp"
+#include "elf/elf_abstract.hpp"
 #include "./incs/capstone.h"
 #include <iostream>
 #include <string.h>
@@ -42,7 +44,20 @@ int main(int argc, char** argv) {
     std::cout << " gaming " << std::endl;
     std::string path;
     std::cin >> path;
-    Binary bin = Binary(path);
+    FILE* file = fopen(path.c_str(), "rb");
+    if (!file) {
+        printf("Couldn't open the file %s. Error: %s\n", path.c_str(), strerror(errno));
+    }
+    uint8_t type;
+    fseek(file, 4, SEEK_SET);
+    fread(&type, sizeof(uint8_t), 1, file);
+    ElfBinary* binary;
+    if (type == 1) binary = new Binary32(file);
+    else if (type == 2) binary = new Binary64(file);
+    // ok this works. still gotta read the file to figure out 32 or 64 bit but oh well.
+    // C++ inheritance is weird.
+    binary->printHeader();
+    binary->dumpSections();
     return 0;
 }
 

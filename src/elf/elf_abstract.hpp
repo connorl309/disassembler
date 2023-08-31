@@ -8,9 +8,9 @@
 class ElfBinary
 {
 public:
-    virtual void dumpSections();
-    virtual void printHeader();
-    virtual void dumpSectionBytes(std::string sectionName);
+    virtual void dumpSections() = 0;
+    virtual void printHeader() = 0;
+    virtual void dumpSectionBytes(std::string sectionName) = 0;
 };
 
 #endif

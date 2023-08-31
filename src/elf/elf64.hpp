@@ -1,5 +1,5 @@
-#ifndef E32_H
-#define E32_H
+#ifndef E64_H
+#define E64_H
 
 #include "elf_abstract.hpp"
 #include <stdint.h>
@@ -23,9 +23,9 @@ typedef struct {
     uint16_t e_type;
     uint16_t e_machine;
     uint32_t e_version;
-    uint32_t e_entry; // entry point
-    uint32_t e_phoff; // program header table ptr
-    uint32_t e_shoff; // section header table ptr
+    uint64_t e_entry; // entry point
+    uint64_t e_phoff; // program header table ptr
+    uint64_t e_shoff; // section header table ptr
     uint32_t e_flags;
     uint16_t e_ehsize;
     // ph entry size and # of entries
@@ -35,7 +35,7 @@ typedef struct {
     uint16_t e_shentsize;
     uint16_t e_shnum;
     uint16_t e_shstrndx;
-} ElfHeader32;
+} ElfHeader64;
 
 /**
  * 32 bit Program Header struct
@@ -43,14 +43,14 @@ typedef struct {
  */
 typedef struct {
     uint32_t p_type;
-    uint32_t p_offset; // offset of segment in file
-    uint32_t p_vaddr; // va of seg in mem
-    uint32_t p_paddr; // pa of seg in mem
-    uint32_t p_filesz;
-    uint32_t p_memsz;
     uint32_t p_flags;
-    uint32_t p_align;
-} ProgramHeader32;
+    uint64_t p_offset; // offset of segment in file
+    uint64_t p_vaddr; // va of seg in mem
+    uint64_t p_paddr; // pa of seg in mem
+    uint64_t p_filesz;
+    uint64_t p_memsz;
+    uint64_t p_align;
+} ProgramHeader64;
 
 /**
  * 32 bit Section Header struct
@@ -59,34 +59,34 @@ typedef struct {
 typedef struct {
     uint32_t sh_name;
     uint32_t sh_type;
-    uint32_t sh_flags;
+    uint64_t sh_flags;
     // the important ones
-    uint32_t sh_addr; // VA of section in mem
-    uint32_t sh_offset; // offset of section into file
-    uint32_t sh_size; // size of section
+    uint64_t sh_addr; // VA of section in mem
+    uint64_t sh_offset; // offset of section into file
+    uint64_t sh_size; // size of section
     // above
     uint32_t sh_link;
     uint32_t sh_info;
-    uint32_t sh_addralign;
-    uint32_t sh_entsize;
-} SectionHeader32;
+    uint64_t sh_addralign;
+    uint64_t sh_entsize;
+} SectionHeader64;
 
 // Note to self: C++ inheritance requires this to specify public
-class Binary32 : public ElfBinary
+class Binary64 : public ElfBinary
 {
 
 private:
-    ElfHeader32 elf_header;
-    ProgramHeader32* program_header_table;
-    SectionHeader32* section_header_table;
+    ElfHeader64 elf_header;
+    ProgramHeader64* program_header_table;
+    SectionHeader64* section_header_table;
 
     uint32_t sections; // # of sections in executable
     FILE* handle;
-    std::map<std::string, SectionHeader32*> section_map;
-    std::map<SectionHeader32*, std::string> reverse_section_map;
+    std::map<std::string, SectionHeader64*> section_map;
+    std::map<SectionHeader64*, std::string> reverse_section_map;
 public:
-    Binary32(FILE* file);
-    ~Binary32() {delete[] program_header_table; delete[] section_header_table; }
+    Binary64(FILE* file);
+    ~Binary64() {delete[] program_header_table; delete[] section_header_table; }
     void dumpSections() override;
     void printHeader() override;
     void dumpSectionBytes(std::string sectionName) override;
