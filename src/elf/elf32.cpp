@@ -79,9 +79,9 @@ void Binary32::dumpSections() {
         std::string name = reverse_section_map.at(&section_header_table[i]);
         uint32_t file_off = section_header_table[i].sh_offset;
         uint32_t size = section_header_table[i].sh_size;
-        printf("\nSection [%s]\n", name);
-        printf("\t* File Offset: 0x%04X\n", file_off);
-        printf("\t* Section Size: 0x%04X\n", size);
+        printf("\nSection [%s]\n", name.c_str());
+        printf("\t* File Offset: 0x%X (%d bytes into file)\n", file_off, file_off);
+        printf("\t* Section Size: %d bytes\n", size);
         printf("\t* Section Flags: 0x%04X\n", section_header_table[i].sh_flags); // todo: maybe implement lut for flag enum and string
     }
 }

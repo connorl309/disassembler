@@ -1,6 +1,7 @@
 #include "elf64.hpp"
 #include <error.h>
 #include <string.h>
+#include <locale.h>
 #include <assert.h>
 
 /**
@@ -47,6 +48,7 @@ Binary64::Binary64(FILE* file)
         std::string name;
         while (nametable[name_idx] != '\0') {
             name += nametable[name_idx];
+            printf("%s\n", name.c_str());
             name_idx++;
         }
         section_map.emplace(name, &section_header_table[i]);
@@ -64,10 +66,10 @@ void Binary64::printHeader() {
     printf("  Binary OS/ABI:\t\t\t0x%02X\n", elf_header.ei_osabi);
     printf("  Binary Type:\t\t\t0x%02X\n", elf_header.e_type);
     printf("  Binary ISA:\t\t\t0x%02X\n", elf_header.e_machine);
-    printf("  Binary Execution Entrypoint:\t\t\t0x%08X\n", elf_header.e_entry);
-    printf("  Start of program headers:\t\t\t0x%08X (bytes into file)\n", elf_header.e_phoff);
+    printf("  Binary Execution Entrypoint:\t\t\t0x%lX\n", elf_header.e_entry);
+    printf("  Start of program headers:\t\t\t0x%lX (bytes into file)\n", elf_header.e_phoff);
     printf("  Size of a program header:\t\t\t%d (in bytes)\n", elf_header.e_phentsize);
-    printf("  Start of section headers:\t\t\t0x%08X (bytes into file)\n", elf_header.e_shoff);
+    printf("  Start of section headers:\t\t\t0x%lX (bytes into file)\n", elf_header.e_shoff);
     printf("  Size of a section header:\t\t\t%d (in bytes)\n", elf_header.e_shentsize);
     printf("  Number of program headers: %d\n", elf_header.e_phnum);
     printf("  Number of section headers:\t\t\t%d / %d\n", elf_header.e_phnum, elf_header.e_shnum);
@@ -80,10 +82,11 @@ void Binary64::dumpSections() {
         std::string name = reverse_section_map.at(&section_header_table[i]);
         uint64_t file_off = section_header_table[i].sh_offset;
         uint64_t size = section_header_table[i].sh_size;
-        printf("\nSection [%s]\n", name);
-        printf("\t* File Offset: 0x%08X\n", file_off);
-        printf("\t* Section Size: 0x%08X\n", size);
-        printf("\t* Section Flags: 0x%08X\n", section_header_table[i].sh_flags); // todo: maybe implement lut for flag enum and string
+        setlocale(LC_NUMERIC, "");
+        printf("\nSection [%s]\n", name.c_str());
+        printf("\t* File Offset: 0x%lX (%lu bytes into file)\n", file_off, file_off);
+        printf("\t* Section Size: %lu bytes\n", size);
+        printf("\t* Section Flags: 0x%lX\n", section_header_table[i].sh_flags); // todo: maybe implement lut for flag enum and string
     }
 }
 /**
@@ -91,30 +94,40 @@ void Binary64::dumpSections() {
  */
 void Binary64::dumpSectionBytes(std::string sectionName) {
     SectionHeader64* section = section_map.at(sectionName);
-    // I want to make this memory efficient, so we'll
-    // read/write ~30 bytes at a time.
-    FILE* dumped = fopen(sectionName.c_str(), "w+");
+    FILE* dumped = fopen("section_dump.txt", "wb+");
     if (!dumped) {
         printf("Could not create file for byte dump. Error: %s", strerror(errno));
     }
-    uint64_t bytes_left = section->sh_size;
+    uint64_t size = section->sh_size;
+    uint64_t bytes_left = size;
     uint64_t offset = section->sh_offset;
-    char buffer[30];
-    memset(buffer, 0, 30);
-    while (bytes_left > 30) {
-        // Write address
-        snprintf(buffer, 30, "0x%08X: ", offset);
-        fwrite(buffer, sizeof(char), 30, dumped);
-        // Read the section data
-        fseek(handle, offset, SEEK_SET);
-        fread(buffer, sizeof(char), 30, handle);
-        offset += 30;
-        // Format and write data
+    fprintf(dumped, "\nDump of section: %s\n", sectionName.c_str());
+
+#define PERLINE 16
+    
+    char buffer[PERLINE];
+
+    for ( size_t i = 0; i + PERLINE < size; i += PERLINE) {
+        // read bytes from section into buffer
+        fseek(handle, offset, SEEK_SET); // go to the start of data
+        fread(buffer, sizeof(char), PERLINE, handle);
+        // print addr
+        fprintf(dumped, "0x%08lX: ", offset + i);
         for (char c : buffer) {
-            fputc(c, dumped);
-            fputc(' ', dumped);
+            fprintf(dumped, "%x ", c);
         }
-        fputc('\n', dumped);
-        memset(buffer, 0, 30);
+        fprintf(dumped, "\n");
+        bytes_left -= PERLINE;
+        offset += PERLINE;
     }
+    if (bytes_left != 0) {
+        fseek(handle, offset, SEEK_SET);
+        fread(buffer, sizeof(char), bytes_left, handle);
+        fprintf(dumped, "0x%08lX: ", offset + bytes_left);
+        for (char c : buffer) {
+            fprintf(dumped, "%x ", c);
+        }
+    }
+
+    fclose(dumped);
 }

@@ -39,9 +39,7 @@ const char* control_flows[] = {
 };
 
 int main(int argc, char** argv) {
-
-    // may explode. handle later
-    std::cout << " gaming " << std::endl;
+    std::cout << "Enter executable path: ";
     std::string path;
     std::cin >> path;
     FILE* file = fopen(path.c_str(), "rb");
@@ -54,10 +52,10 @@ int main(int argc, char** argv) {
     ElfBinary* binary;
     if (type == 1) binary = new Binary32(file);
     else if (type == 2) binary = new Binary64(file);
-    // ok this works. still gotta read the file to figure out 32 or 64 bit but oh well.
     // C++ inheritance is weird.
     binary->printHeader();
     binary->dumpSections();
+    binary->dumpSectionBytes(".strtab");
     return 0;
 }
 
