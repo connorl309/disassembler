@@ -42,6 +42,9 @@ int main(int argc, char** argv) {
     std::cout << "Enter executable path: ";
     std::string path;
     std::cin >> path;
+    
+    remove("section_dump.txt"); // just in case
+
     FILE* file = fopen(path.c_str(), "rb");
     if (!file) {
         printf("Couldn't open the file %s. Error: %s\n", path.c_str(), strerror(errno));
@@ -56,6 +59,8 @@ int main(int argc, char** argv) {
     binary->printHeader();
     binary->dumpSections();
     binary->dumpSectionBytes(".strtab");
+    binary->dumpSectionBytes(".dynsym");
+    binary->cleanup();
     return 0;
 }
 

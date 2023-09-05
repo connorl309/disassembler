@@ -48,7 +48,6 @@ Binary64::Binary64(FILE* file)
         std::string name;
         while (nametable[name_idx] != '\0') {
             name += nametable[name_idx];
-            printf("%s\n", name.c_str());
             name_idx++;
         }
         section_map.emplace(name, &section_header_table[i]);
@@ -94,7 +93,7 @@ void Binary64::dumpSections() {
  */
 void Binary64::dumpSectionBytes(std::string sectionName) {
     SectionHeader64* section = section_map.at(sectionName);
-    FILE* dumped = fopen("section_dump.txt", "wb+");
+    FILE* dumped = fopen("section_dump.txt", "a+");
     if (!dumped) {
         printf("Could not create file for byte dump. Error: %s", strerror(errno));
     }
@@ -105,29 +104,49 @@ void Binary64::dumpSectionBytes(std::string sectionName) {
 
 #define PERLINE 16
     
-    char buffer[PERLINE];
-
+    uint8_t buffer[PERLINE];
+    // This isn't super optimal but honestly I dont know better ways
+    // to copy raw bytes of data between files.
     for ( size_t i = 0; i + PERLINE < size; i += PERLINE) {
         // read bytes from section into buffer
         fseek(handle, offset, SEEK_SET); // go to the start of data
         fread(buffer, sizeof(char), PERLINE, handle);
         // print addr
         fprintf(dumped, "0x%08lX: ", offset + i);
-        for (char c : buffer) {
-            fprintf(dumped, "%x ", c);
+        for (uint8_t c : buffer) {
+            fprintf(dumped, "%02x ", c);
+        }
+        fprintf(dumped, "\t");
+        // now print the string equivalent
+        for (uint8_t c : buffer) {
+            uint8_t toWrite = (c != 0) ? c : (uint8_t)0x7C; // GCC yelling at me; this is the | character
+            fprintf(dumped, "%c", toWrite);
         }
         fprintf(dumped, "\n");
         bytes_left -= PERLINE;
         offset += PERLINE;
     }
+    // handle any remaining data
     if (bytes_left != 0) {
         fseek(handle, offset, SEEK_SET);
         fread(buffer, sizeof(char), bytes_left, handle);
         fprintf(dumped, "0x%08lX: ", offset + bytes_left);
-        for (char c : buffer) {
-            fprintf(dumped, "%x ", c);
+        for (uint8_t c : buffer) {
+            fprintf(dumped, "%02x ", c);
+        }
+        fprintf(dumped, "\t");
+        // now print the string equivalent
+        for (uint8_t c : buffer) {
+            uint8_t toWrite = (c != 0) ? c : (uint8_t)0x7C; // GCC yelling at me; this is the | character
+            fprintf(dumped, "%c", toWrite);
         }
     }
-
     fclose(dumped);
+}
+
+/**
+ * Cleanup func (calls destructor)
+*/
+void Binary64::cleanup() {
+    this->~Binary64();
 }

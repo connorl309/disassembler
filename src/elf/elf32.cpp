@@ -89,31 +89,62 @@ void Binary32::dumpSections() {
  * Dump a section's bytes to a file
  */
 void Binary32::dumpSectionBytes(std::string sectionName) {
+    // Copy+pasted from elf64.cpp
     SectionHeader32* section = section_map.at(sectionName);
-    // I want to make this memory efficient, so we'll
-    // read/write ~30 bytes at a time.
-    FILE* dumped = fopen(sectionName.c_str(), "w+");
+    FILE* dumped = fopen("section_dump.txt", "a+");
     if (!dumped) {
         printf("Could not create file for byte dump. Error: %s", strerror(errno));
     }
-    uint32_t bytes_left = section->sh_size;
-    uint32_t offset = section->sh_offset;
-    char buffer[30];
-    memset(buffer, 0, 30);
-    while (bytes_left > 30) {
-        // Write address
-        snprintf(buffer, 30, "0x%04X: ", offset);
-        fwrite(buffer, sizeof(char), 30, dumped);
-        // Read the section data
-        fseek(handle, offset, SEEK_SET);
-        fread(buffer, sizeof(char), 30, handle);
-        offset += 30;
-        // Format and write data
-        for (char c : buffer) {
-            fputc(c, dumped);
-            fputc(' ', dumped);
+    uint64_t size = section->sh_size;
+    uint64_t bytes_left = size;
+    uint64_t offset = section->sh_offset;
+    fprintf(dumped, "\nDump of section: %s\n", sectionName.c_str());
+
+#define PERLINE 16
+    
+    uint8_t buffer[PERLINE];
+    // This isn't super optimal but honestly I dont know better ways
+    // to copy raw bytes of data between files.
+    for ( size_t i = 0; i + PERLINE < size; i += PERLINE) {
+        // read bytes from section into buffer
+        fseek(handle, offset, SEEK_SET); // go to the start of data
+        fread(buffer, sizeof(char), PERLINE, handle);
+        // print addr
+        fprintf(dumped, "0x%08lX: ", offset + i);
+        for (uint8_t c : buffer) {
+            fprintf(dumped, "%02x ", c);
         }
-        fputc('\n', dumped);
-        memset(buffer, 0, 30);
+        fprintf(dumped, "\t");
+        // now print the string equivalent
+        for (uint8_t c : buffer) {
+            uint8_t toWrite = (c != 0) ? c : (uint8_t)0x7C; // GCC yelling at me; this is the | character
+            fprintf(dumped, "%c", toWrite);
+        }
+        fprintf(dumped, "\n");
+        bytes_left -= PERLINE;
+        offset += PERLINE;
     }
+    // handle any remaining data
+    if (bytes_left != 0) {
+        fseek(handle, offset, SEEK_SET);
+        fread(buffer, sizeof(char), bytes_left, handle);
+        fprintf(dumped, "0x%08lX: ", offset + bytes_left);
+        for (uint8_t c : buffer) {
+            fprintf(dumped, "%02x ", c);
+        }
+        fprintf(dumped, "\t");
+        // now print the string equivalent
+        for (uint8_t c : buffer) {
+            uint8_t toWrite = (c != 0) ? c : (uint8_t)0x7C; // GCC yelling at me; this is the | character
+            fprintf(dumped, "%c", toWrite);
+        }
+    }
+    fclose(dumped);
+}
+
+/**
+ * Cleanup func (calls destructor)
+*/
+void Binary32::cleanup() {
+    this->~Binary32();
 }

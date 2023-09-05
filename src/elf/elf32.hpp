@@ -90,6 +90,7 @@ public:
     void dumpSections() override;
     void printHeader() override;
     void dumpSectionBytes(std::string sectionName) override;
+    void cleanup() override;
 };
 
 #endif

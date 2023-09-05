@@ -11,6 +11,7 @@ public:
     virtual void dumpSections() = 0;
     virtual void printHeader() = 0;
     virtual void dumpSectionBytes(std::string sectionName) = 0;
+    virtual void cleanup() = 0;
 };
 
 #endif
